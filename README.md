@@ -10,9 +10,26 @@ The tool is used to compute the statistics shown in the benchmark  [Real-World T
 A few of the measures are dependent on the texture resolution (in texels). In order to compute these, TexMetro takes as input the actual texture image, or, simply, its dimensions, provided as command-line arguments.
 The TexMetro tool is OpenSource and is implemented in C++ using [vcg library](https://github.com/cnr-isti-vclab/vcglib) for mesh processing, Qt (for and image loading and interfacing), and OpenGL (to accelerate texture overlap detecting, which is implemented by rasterization over off-screen buffers)
 
+## Building
+
+vcglib, draco and meshoptimizer are git submodules under `src/thirdparty`, so clone with:
+
+    git clone --recurse-submodules <repo-url>
+
+(or, on an existing checkout: `git submodule update --init`). Then, on Debian/Ubuntu:
+
+    sudo apt install qt6-base-dev libglew-dev libglu1-mesa-dev cmake ninja-build pkg-config
+    mkdir build && cd build
+    qmake6 ../src/texmetro.pro
+    make
+
+The first build also bootstraps draco's own CMake build into a static library
+(a couple of minutes); later builds reuse it. cgltf is vendored directly
+(it's a single header meant to be dropped into a project as-is).
+
 ## Usage
 
-Texmetro supports OBJ, PLY and FBX 3D models. To compute the metrics for a given model simply run
+Texmetro supports OBJ and glTF/GLB 3D models, including glTF meshes compressed with EXT_meshopt_compression or KHR_draco_mesh_compression. To compute the metrics for a given model simply run
 
     texmetro path/to/model.obj
 

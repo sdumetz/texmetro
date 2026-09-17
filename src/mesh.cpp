@@ -1,6 +1,7 @@
 #include "mesh.h"
+#include "gltf_import.h"
 
-#include <wrap/io_trimesh/import.h>
+#include <wrap/io_trimesh/import_obj.h>
 #include <vcg/complex/algorithms/attribute_seam.h>
 
 #include <QImageReader>
@@ -10,6 +11,29 @@
 
 
 static void CutAlongSeams(Mesh& m);
+
+// Only OBJ (via vcglib) and glTF/GLB (via cgltf, see gltf_import.cpp) are
+// supported; every other format vcglib can read has been dropped.
+static bool OpenByExtension(Mesh &m, const char *filename, int &loadmask)
+{
+    using namespace vcg;
+
+    QString ext = QFileInfo(filename).suffix().toLower();
+    if (ext == "obj") {
+        int r = tri::io::ImporterOBJ<Mesh>::Open(m, filename, loadmask);
+        if (r != tri::io::ImporterOBJ<Mesh>::E_NOERROR) {
+            std::cerr << tri::io::ImporterOBJ<Mesh>::ErrorMsg(r) << std::endl;
+            if (tri::io::ImporterOBJ<Mesh>::ErrorCritical(r))
+                return false;
+        }
+        return true;
+    }
+    if (ext == "glb" || ext == "gltf") {
+        return ImportGLTF(m, filename, loadmask);
+    }
+    std::cerr << "Unsupported file format \"" << ext.toStdString() << "\": only .obj and .glb/.gltf are supported" << std::endl;
+    return false;
+}
 
 
 using namespace vcg;
@@ -34,12 +58,9 @@ bool LoadMesh(Mesh &m, const char *filename, int &loadmask)
     QString wd = QDir::currentPath();
     QDir::setCurrent(fi.absoluteDir().absolutePath());
 
-    int r = tri::io::Importer<Mesh>::Open(m, fi.fileName().toStdString().c_str(), loadmask);
-    if (r != 0) {
-        std::cerr << tri::io::Importer<Mesh>::ErrorMsg(r) << std::endl;
-        if (tri::io::Importer<Mesh>::ErrorCritical(r)) {
-            return false;
-        }
+    if (!OpenByExtension(m, fi.fileName().toStdString().c_str(), loadmask)) {
+        QDir::setCurrent(wd);
+        return false;
     }
 
     if (!(loadmask & tri::io::Mask::IOM_WEDGTEXCOORD)) {
@@ -48,7 +69,7 @@ bool LoadMesh(Mesh &m, const char *filename, int &loadmask)
     }
 
     int ntex = 0;
-    for (const string& textureName : m.textures) {
+    for (const std::string& textureName : m.textures) {
         QFileInfo textureFile(textureName.c_str());
         textureFile.makeAbsolute();
         if (!textureFile.exists() || !textureFile.isReadable()) {

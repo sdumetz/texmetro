@@ -195,7 +195,7 @@ static void ParseTextureSize(const QString& texsize, int *w, int *h)
     while (it != texsize.end() && it->isDigit())
         it++;
 
-    *w = texsize.leftRef(it - texsize.begin()).toInt(&ok, 10);
+    *w = texsize.left(it - texsize.begin()).toInt(&ok, 10);
     if (!ok) {
         *w = *h = -1;
         return;
@@ -204,7 +204,7 @@ static void ParseTextureSize(const QString& texsize, int *w, int *h)
     if (it != texsize.end() && *it == 'x')
         it++;
 
-    *h = texsize.midRef(it - texsize.begin()).toInt(&ok, 10);
+    *h = texsize.mid(it - texsize.begin()).toInt(&ok, 10);
     if (!ok) {
         *w = *h = -1;
         return;

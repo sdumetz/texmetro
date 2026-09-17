@@ -1,0 +1,11 @@
+[submodule "src/thirdparty/vcglib"]
+	path = src/thirdparty/vcglib
+	url = https://github.com/cnr-isti-vclab/vcglib.git
+	ignore = dirty
+[submodule "src/thirdparty/draco"]
+	path = src/thirdparty/draco
+	url = https://github.com/google/draco.git
+	ignore = untracked
+[submodule "src/thirdparty/meshoptimizer"]
+	path = src/thirdparty/meshoptimizer
+	url = https://github.com/zeux/meshoptimizer.git

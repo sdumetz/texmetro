@@ -1,0 +1,26 @@
+diff --git a/vcg/math/histogram.h b/vcg/math/histogram.h
+index 4a3ddc2..d6d47b6 100644
+--- a/vcg/math/histogram.h
++++ b/vcg/math/histogram.h
+@@ -24,6 +24,8 @@
+ #define __VCG_HISTOGRAM
+ 
+ #include <assert.h>
++#include <algorithm>
++#include <cmath>
+ #include <string>
+ #include <limits>
+ #include <vector>
+@@ -390,7 +392,11 @@ ScalarType Histogram<ScalarType>::Percentile(ScalarType frac) const
+ 
+   // useless summation just to be sure
+   for(i=0;i<H.size();i++) sum+=H[i];
+-  assert(sum==cnt);
++  // sum and cnt are the same quantity accumulated in a different order (resp.
++  // by summing the bins here, and incrementally in Add()), so they can differ
++  // by a tiny amount due to floating point rounding; an exact sum==cnt check
++  // spuriously fails on histograms with many Add() calls.
++  assert(std::abs(sum-cnt) <= std::max(std::abs(sum), std::abs(cnt)) * ScalarType(1e-6));
+ 
+   sum*=frac;
+   for(i=0; i<H.size(); i++)
